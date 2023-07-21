@@ -10,9 +10,9 @@ void ACLobbyGameMode::PostLogin(APlayerController* NewPlayer)
 
 	CLog::Print("Players : " + FString::FromInt(NumberOfPlayers));
 
-	if (NumberOfPlayers >= 3)
+	if (NumberOfPlayers >= 2)
 	{
-		CLog::Log("Reached 3 Players!");
+		CLog::Log("Ready to play");
 
 		GetWorldTimerManager().SetTimer(GameStartTimer, this, &ACLobbyGameMode::StartGame, 10);
 	}
@@ -35,5 +35,5 @@ void ACLobbyGameMode::StartGame()
 	CheckNull(world);
 
 	bUseSeamlessTravel = true;
-	world->ServerTravel("/Game/Maps/Play?listen");
+	world->ServerTravel("/Game/Maps/FPS?listen");
 }
