@@ -82,12 +82,25 @@ public:
 
 	/////////////////////
 private:
-	UFUNCTION(Reliable, Server) //only server
+	UFUNCTION(Reliable, Server)
 		void OnServer();
+	void OnServer_Implementation();
 
-	//Todo
-	//UFUNCTION(Reliable, Client)
-	//UFUNCTION(Reliable, NetMulticast)
-	// -> 실습만 월요일에 합시다.
+	UFUNCTION(NetMulticast, Reliable)
+		void OnNetMulticast();
+	void OnNetMulticast_Implementation();
+
+	UFUNCTION(Client, Reliable)
+		void OnClient();
+	void OnClient_Implementation();
+
+	void ShowLocalRole();
+
+private:
+	UPROPERTY(Replicated)
+		int32 RandomValue_Replicated;
+
+	int32 RandomValue_NoReplicated;
+
 };
 

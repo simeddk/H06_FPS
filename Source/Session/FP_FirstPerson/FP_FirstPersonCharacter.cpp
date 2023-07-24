@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
+#include "Net/UnrealNetwork.h"
 
 AFP_FirstPersonCharacter::AFP_FirstPersonCharacter()
 {
@@ -107,8 +108,6 @@ void AFP_FirstPersonCharacter::OnFire()
 		DamagedComponent->AddImpulseAtLocation(ShootDir * WeaponDamage, Impact.Location);
 	}
 
-	///
-	OnServer();
 }
 
 void AFP_FirstPersonCharacter::MoveForward(float Value)
@@ -153,10 +152,63 @@ FHitResult AFP_FirstPersonCharacter::WeaponTrace(const FVector& StartTrace, cons
 void AFP_FirstPersonCharacter::OnTestAction()
 {
 	//OnServer();
+	//OnNetMulticast();
+	//OnServer();
+	//OnClient();
+	//OnServer();
+	//OnClient();
+	OnClient();
+	OnServer();
 }
 
 
 void AFP_FirstPersonCharacter::OnServer_Implementation()
 {
-	CLog::Print("Server Called");
+	//CLog::Print("Server Called");
+
+	//OnNetMulticast();
+	//OnClient();
+
+	//OnNetMulticast();
+
+	OnNetMulticast();
+
+	RandomValue_Replicated = UKismetMathLibrary::RandomInteger(100);
+}
+
+void AFP_FirstPersonCharacter::OnNetMulticast_Implementation()
+{
+	//CLog::Print("NetMulticast Called");
+	//ShowLocalRole();
+
+	CLog::Print("Relicated : " + FString::FromInt(RandomValue_Replicated), 1, 60.f, FColor::Red);
+	CLog::Print("NoRelicated : " + FString::FromInt(RandomValue_NoReplicated), 2, 60.f, FColor::Green);
+}
+
+void AFP_FirstPersonCharacter::OnClient_Implementation()
+{
+	//CLog::Print("Client Called");
+
+	//ShowLocalRole();
+
+	RandomValue_NoReplicated = UKismetMathLibrary::RandomInteger(100);
+}
+
+void AFP_FirstPersonCharacter::ShowLocalRole()
+{
+	if (GetLocalRole() == ENetRole::ROLE_Authority)
+		CLog::Print("Authority");
+
+	if (GetLocalRole() == ENetRole::ROLE_AutonomousProxy)
+		CLog::Print("AutonomousProxy");
+
+	if (GetLocalRole() == ENetRole::ROLE_SimulatedProxy)
+		CLog::Print("SimulatedProxy");
+}
+
+void AFP_FirstPersonCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(AFP_FirstPersonCharacter, RandomValue_Replicated);
 }
