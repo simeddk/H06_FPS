@@ -30,10 +30,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 		UAnimMontage* TP_FireAnimation;
 
-
 	//카메라
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		UCameraComponent* Camera;
+
+	//파티클
+	UPROPERTY(VisibleAnywhere, Category = GamePlay)
+		class UParticleSystemComponent* FP_GunShotParticle;
+
+	UPROPERTY(VisibleAnywhere, Category = GamePlay)
+		class UParticleSystemComponent* TP_GunShotParticle;
 
 public:
 	AFP_FirstPersonCharacter();
@@ -54,6 +60,9 @@ public:
 		UAnimMontage* FireAnimation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		TSubclassOf<class ACBullet> BulletClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 		float WeaponRange;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
@@ -62,7 +71,14 @@ public:
 
 protected:
 	void OnFire();
-	void OnTestAction();
+
+	UFUNCTION(Reliable, Server)
+		void OnServerFire(const FVector& LineStart, const FVector& LineEnd);
+	void OnServerFire_Implementation(const FVector& LineStart, const FVector& LineEnd);
+
+	UFUNCTION(NetMulticast, Reliable)
+		void MulticastShootEffects();
+	void MulticastShootEffects_Implementation();
 
 	void MoveForward(float Val);
 	void MoveRight(float Val);
@@ -78,29 +94,6 @@ protected:
 public:
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return FP_Mesh; }
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return Camera; }
-
-
-	/////////////////////
-private:
-	UFUNCTION(Reliable, Server)
-		void OnServer();
-	void OnServer_Implementation();
-
-	UFUNCTION(NetMulticast, Reliable)
-		void OnNetMulticast();
-	void OnNetMulticast_Implementation();
-
-	UFUNCTION(Client, Reliable)
-		void OnClient();
-	void OnClient_Implementation();
-
-	void ShowLocalRole();
-
-private:
-	UPROPERTY(Replicated)
-		int32 RandomValue_Replicated;
-
-	int32 RandomValue_NoReplicated;
 
 };
 
