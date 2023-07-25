@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Game/CGameState.h"
 #include "FP_FirstPersonCharacter.generated.h"
 
 class UInputComponent;
@@ -70,16 +71,24 @@ public:
 
 
 protected:
+	virtual void BeginPlay() override;
+
 	void OnFire();
 
 	UFUNCTION(Reliable, Server)
 		void OnServerFire(const FVector& LineStart, const FVector& LineEnd);
 	void OnServerFire_Implementation(const FVector& LineStart, const FVector& LineEnd);
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(NetMulticast, Unreliable)
 		void MulticastShootEffects();
 	void MulticastShootEffects_Implementation();
 
+public:
+	UFUNCTION(NetMulticast, Reliable)
+		void SetTeamColor(ETeamType InTeamType);
+	void SetTeamColor_Implementation(ETeamType InTeamType);
+
+protected:
 	void MoveForward(float Val);
 	void MoveRight(float Val);
 
@@ -95,5 +104,12 @@ public:
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return FP_Mesh; }
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return Camera; }
 
+
+private:
+	UPROPERTY(Replicated)
+		ETeamType CurrentTeam;
+
+private:
+	class UMaterialInstanceDynamic* DynamicMaterial;
 };
 

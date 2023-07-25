@@ -8,7 +8,16 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "CBullet.h"
+
+#define NotUse
+
+void AFP_FirstPersonCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AFP_FirstPersonCharacter, CurrentTeam);
+}
 
 AFP_FirstPersonCharacter::AFP_FirstPersonCharacter()
 {
@@ -76,6 +85,33 @@ void AFP_FirstPersonCharacter::SetupPlayerInputComponent(class UInputComponent* 
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AFP_FirstPersonCharacter::LookUpAtRate);
 }
 
+void AFP_FirstPersonCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+#ifndef NotUse
+	UWorld* world = GetWorld();
+	CheckNull(world);
+
+	ACGameState* gameState = Cast<ACGameState>(world->GetGameState());
+	if (!!gameState)
+	{
+		bool bRed = (gameState->TestTeam == ETeamType::Red);
+		FColor textColor = bRed ? FColor::Red : FColor::Blue;
+
+		CLog::Print("Found GameState : " + gameState->GetName(), -1, 5, textColor);
+		CLog::Print("Number of Player : " +  FString::FromInt(gameState->PlayerArray.Num()));
+	}
+	else
+	{
+		CLog::Print("Not Found Game State");
+	}
+#endif
+
+	if (HasAuthority() == false)
+		SetTeamColor(CurrentTeam);
+}
+
 void AFP_FirstPersonCharacter::OnFire()
 {
 	if (FireAnimation != NULL)
@@ -107,6 +143,8 @@ void AFP_FirstPersonCharacter::OnFire()
 	const FVector EndTrace = StartTrace + ShootDir * WeaponRange;
 
 	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
+	//Todo.
+	CLog::Print(Impact.GetActor()->GetName());
 
 	AActor* DamagedActor = Impact.GetActor();
 	UPrimitiveComponent* DamagedComponent = Impact.GetComponent();
@@ -145,6 +183,29 @@ void AFP_FirstPersonCharacter::MulticastShootEffects_Implementation()
 
 	if (!!BulletClass)
 		GetWorld()->SpawnActor<ACBullet>(BulletClass, FP_Gun->GetSocketLocation("Muzzle"), GetControlRotation());
+}
+
+void AFP_FirstPersonCharacter::SetTeamColor_Implementation(ETeamType InTeamType)
+{
+	CurrentTeam = InTeamType;
+
+	FLinearColor color = FLinearColor(0, 0, 0);
+
+	switch (InTeamType)
+	{
+		case ETeamType::Red:	color = FLinearColor(1, 0, 0);		break;
+		case ETeamType::Blue:	color = FLinearColor(0, 0, 1);		break;
+		default :				color = FLinearColor(1, 0, 0);
+	}
+
+	if (DynamicMaterial == nullptr)
+	{
+		DynamicMaterial = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), nullptr);
+		DynamicMaterial->SetVectorParameterValue("BodyColor", color);
+
+		GetMesh()->SetMaterial(0, DynamicMaterial);
+		FP_Mesh->SetMaterial(0, DynamicMaterial);
+	}
 }
 
 void AFP_FirstPersonCharacter::MoveForward(float Value)
