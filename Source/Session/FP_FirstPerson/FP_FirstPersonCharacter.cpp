@@ -10,6 +10,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "CBullet.h"
+#include "Game/CSpawnPoint.h"
+#include "Game/CPlayerState.h"
 
 #define NotUse
 
@@ -66,6 +68,16 @@ AFP_FirstPersonCharacter::AFP_FirstPersonCharacter()
 	CHelpers::GetClass(&BulletClass, "Blueprint'/Game/FirstPersonCPP/Blueprints/BP_CBullet.BP_CBullet_C'");
 }
 
+void AFP_FirstPersonCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	SelfPlayerState = Cast<ACPlayerState>(GetPlayerState());
+
+	if (GetLocalRole() == ROLE_AutonomousProxy && !!SelfPlayerState)
+		SelfPlayerState->Health = 100.f;
+}
+
 
 void AFP_FirstPersonCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -110,6 +122,10 @@ void AFP_FirstPersonCharacter::BeginPlay()
 
 	if (HasAuthority() == false)
 		SetTeamColor(CurrentTeam);
+
+	UWorld* world = GetWorld();
+	CheckNull(world);
+	UGameplayStatics::GetAllActorsOfClass(world, ACSpawnPoint::StaticClass(), SpawnPoints);
 }
 
 void AFP_FirstPersonCharacter::OnFire()
@@ -143,8 +159,6 @@ void AFP_FirstPersonCharacter::OnFire()
 	const FVector EndTrace = StartTrace + ShootDir * WeaponRange;
 
 	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
-	//Todo.
-	CLog::Print(Impact.GetActor()->GetName());
 
 	AActor* DamagedActor = Impact.GetActor();
 	UPrimitiveComponent* DamagedComponent = Impact.GetComponent();
@@ -187,8 +201,6 @@ void AFP_FirstPersonCharacter::MulticastShootEffects_Implementation()
 
 void AFP_FirstPersonCharacter::SetTeamColor_Implementation(ETeamType InTeamType)
 {
-	CurrentTeam = InTeamType;
-
 	FLinearColor color = FLinearColor(0, 0, 0);
 
 	switch (InTeamType)
@@ -206,6 +218,22 @@ void AFP_FirstPersonCharacter::SetTeamColor_Implementation(ETeamType InTeamType)
 		GetMesh()->SetMaterial(0, DynamicMaterial);
 		FP_Mesh->SetMaterial(0, DynamicMaterial);
 	}
+}
+
+ACPlayerState* AFP_FirstPersonCharacter::GetSelfPlayerState()
+{
+	if (SelfPlayerState == nullptr)
+		SelfPlayerState = Cast<ACPlayerState>(GetPlayerState());
+
+	return SelfPlayerState;
+}
+
+void AFP_FirstPersonCharacter::SetSelfPlayerState(ACPlayerState* NewPlayerState)
+{
+	CheckFalse(HasAuthority());
+
+	SetPlayerState(NewPlayerState);
+	SelfPlayerState = NewPlayerState;
 }
 
 void AFP_FirstPersonCharacter::MoveForward(float Value)
@@ -238,6 +266,7 @@ FHitResult AFP_FirstPersonCharacter::WeaponTrace(const FVector& StartTrace, cons
 {
 	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), true, GetInstigator());
 	TraceParams.bReturnPhysicalMaterial = true;
+	TraceParams.AddIgnoredActors(SpawnPoints);
 
 	FHitResult Hit(ForceInit);
 	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, ECC_GameTraceChannel1, TraceParams);

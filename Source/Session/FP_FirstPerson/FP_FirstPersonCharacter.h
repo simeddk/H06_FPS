@@ -44,6 +44,7 @@ public:
 
 public:
 	AFP_FirstPersonCharacter();
+	virtual void PossessedBy(AController* NewController) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 		float BaseTurnRate;
@@ -88,6 +89,10 @@ public:
 		void SetTeamColor(ETeamType InTeamType);
 	void SetTeamColor_Implementation(ETeamType InTeamType);
 
+public:
+	class ACPlayerState* GetSelfPlayerState();
+	void SetSelfPlayerState(class ACPlayerState* NewPlayerState);
+
 protected:
 	void MoveForward(float Val);
 	void MoveRight(float Val);
@@ -105,11 +110,13 @@ public:
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return Camera; }
 
 
-private:
+public:
 	UPROPERTY(Replicated)
 		ETeamType CurrentTeam;
 
 private:
 	class UMaterialInstanceDynamic* DynamicMaterial;
+	TArray<AActor*> SpawnPoints;
+	class ACPlayerState* SelfPlayerState;
 };
 

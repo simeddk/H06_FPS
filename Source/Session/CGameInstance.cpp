@@ -79,7 +79,7 @@ void UCGameInstance::CreateSession()
 			sessionSettings.bIsLANMatch = false;
 		}
 
-		sessionSettings.NumPublicConnections = 4;
+		sessionSettings.NumPublicConnections = 6;
 		sessionSettings.bShouldAdvertise = true;
 		sessionSettings.bUsesPresence = true;
 		sessionSettings.Set(SESSION_SETTINGS_KEY, DesiredSessionName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);

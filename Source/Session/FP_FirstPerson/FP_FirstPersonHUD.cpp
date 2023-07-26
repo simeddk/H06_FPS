@@ -30,4 +30,9 @@ void AFP_FirstPersonHUD::DrawHUD()
 	FCanvasTileItem TileItem( CrosshairDrawPosition, CrosshairTex->Resource, FLinearColor::White);
 	TileItem.BlendMode = SE_BLEND_Translucent;
 	Canvas->DrawItem( TileItem );
+
+	//Todo.
+	DrawText("Health", FLinearColor::Red, 50, 50);
+	DrawText("Kill", FLinearColor::Red, 50, 70);
+	DrawText("Death", FLinearColor::Red, 50, 90);
 }

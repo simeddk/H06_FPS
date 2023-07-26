@@ -18,8 +18,10 @@ protected:
 
 public:	
 	virtual void OnConstruction(const FTransform& Transform) override;
-
 	virtual void Tick(float DeltaTime) override;
+
+	FORCEINLINE bool IsBlocked() { return OverlappingActors.Num() > 0; }
+	FORCEINLINE ETeamType GetTeam() { return Team; }
 
 private:
 	UFUNCTION()
@@ -35,4 +37,6 @@ protected:
 private:
 	UPROPERTY(VisibleDefaultsOnly)
 		class UCapsuleComponent* Capsule;
+
+	TArray<AActor*> OverlappingActors;
 };

@@ -35,15 +35,25 @@ void ACSpawnPoint::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	Capsule->UpdateOverlaps();
 }
 
 void ACSpawnPoint::BeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
-	CLog::Print("BeginOverlap : " + OtherActor->GetName());
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		if (OverlappingActors.Find(OtherActor) < 0)
+			OverlappingActors.Add(OtherActor);
+	}
+
 }
 
 void ACSpawnPoint::EndOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
-	CLog::Print("EndOverlap : " + OtherActor->GetName());
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		if (OverlappingActors.Find(OtherActor) >= 0)
+			OverlappingActors.Remove(OtherActor);
+	}
 }
 
