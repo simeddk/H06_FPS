@@ -22,6 +22,7 @@ public:
 
 public:
 	void MoveToSpawnPoint(class AFP_FirstPersonCharacter* InPlayer);
+	void Respawn(class AFP_FirstPersonCharacter* InPlayer);
 
 private:
 	TArray<class AFP_FirstPersonCharacter*> RedTeamCharacters;

@@ -1,38 +1,64 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "FP_FirstPersonHUD.h"
+#include "Global.h"
 #include "Engine/Canvas.h"
+#include "Engine/Font.h"
 #include "TextureResource.h"
 #include "CanvasItem.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/Texture2D.h"
+#include "FP_FirstPersonCharacter.h"
+#include "Game/CPlayerState.h"
 
 AFP_FirstPersonHUD::AFP_FirstPersonHUD()
 {
-	// Set the crosshair texture
 	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairTexObj(TEXT("/Game/FirstPerson/Textures/FirstPersonCrosshair"));
 	CrosshairTex = CrosshairTexObj.Object;
+
+	CHelpers::GetAsset(&Font, "Font'/Game/Widgets/Fonts/Audiowide-Regular_Font.Audiowide-Regular_Font'");
 }
 
-/** This method draws a very simple crosshair */
 void AFP_FirstPersonHUD::DrawHUD()
 {
 	Super::DrawHUD();
 
-	// Find center of the Canvas
+	// Draw the crosshair
 	const FVector2D Center(Canvas->ClipX * 0.5f, Canvas->ClipY * 0.5f);
 
-	// Offset by half the texture's dimensions so that the center of the texture aligns with the center of the Canvas
 	const FVector2D CrosshairDrawPosition( (Center.X - (CrosshairTex->GetSurfaceWidth() * 0.5)),
 										   (Center.Y - (CrosshairTex->GetSurfaceHeight() * 0.5f)) );
 
-	// Draw the crosshair
 	FCanvasTileItem TileItem( CrosshairDrawPosition, CrosshairTex->Resource, FLinearColor::White);
 	TileItem.BlendMode = SE_BLEND_Translucent;
 	Canvas->DrawItem( TileItem );
 
-	//Todo.
-	DrawText("Health", FLinearColor::Red, 50, 50);
-	DrawText("Kill", FLinearColor::Red, 50, 70);
-	DrawText("Death", FLinearColor::Red, 50, 90);
+
+	// Draw PlayerState Score
+	CheckNull(PlayerOwner->GetPawn());
+	
+	AFP_FirstPersonCharacter* player = Cast<AFP_FirstPersonCharacter>(PlayerOwner->GetPawn());
+	CheckNull(player);
+
+	ACPlayerState* playerState = player->GetSelfPlayerState();
+	CheckNull(playerState);
+
+	int32 health = (int32)playerState->Health;
+	int32 kill = (int32)playerState->Score;
+	int32 death = (int32)playerState->Death;
+
+	FString str;
+
+	str = "Health : " + FString::FromInt(health);
+	DrawText(str, FLinearColor::Red, 50, 50, Font);
+	
+	str = "Kill : " + FString::FromInt(kill);
+	DrawText(str, FLinearColor::Red, 50, 70, Font);
+	
+	str = "Death : " + FString::FromInt(death);
+	DrawText(str, FLinearColor::Red, 50, 90, Font);
+
+	if (playerState->IsDead())
+	{
+		str = "You Dead, Noob";
+		DrawText(str, FLinearColor::Red, Center.X - 300, Center.Y, Font, 5.f);
+	}
 }

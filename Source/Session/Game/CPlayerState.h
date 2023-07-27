@@ -13,6 +13,8 @@ class SESSION_API ACPlayerState : public APlayerState
 public:
 	ACPlayerState(const FObjectInitializer& ObjectInitializer);
 
+	FORCEINLINE bool IsDead() { return Health <= 0; }
+
 public:
 	UPROPERTY(Replicated)
 		float Health;

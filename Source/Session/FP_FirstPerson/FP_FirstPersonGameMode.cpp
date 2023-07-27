@@ -30,7 +30,7 @@ void AFP_FirstPersonGameMode::PostLogin(APlayerController* NewPlayer)
 
 	if (!!playerState && !!player)
 	{
-		player->SetPlayerState(playerState);
+		//player->SetPlayerState(playerState);
 
 		if (RedTeamCharacters.Num() > BlueTeamCharacters.Num())
 		{
@@ -119,4 +119,32 @@ void AFP_FirstPersonGameMode::MoveToSpawnPoint(AFP_FirstPersonCharacter* InPlaye
 		if (ToBeSpawnCharacters.Find(InPlayer) < 0)
 			ToBeSpawnCharacters.Add(InPlayer);
 	}
+}
+
+void AFP_FirstPersonGameMode::Respawn(AFP_FirstPersonCharacter* InPlayer)
+{
+	AController* controller = InPlayer->GetController();
+
+	//컨트롤러 끊기
+	InPlayer->DetachFromControllerPendingDestroy();
+
+	//플레이어 캐릭터를 다시 스폰
+	UWorld* world = GetWorld();
+	CheckNull(world);
+
+	AFP_FirstPersonCharacter* player = world->SpawnActor<AFP_FirstPersonCharacter>(DefaultPawnClass);
+	CheckNull(player);
+
+	//다시 스포된 플레어에게 빙의
+	controller->Possess(player);
+
+	//플레이어 스테이트 유지(팀, 킬, 데스 유지)
+	ACPlayerState* playerState = Cast<ACPlayerState>(controller->PlayerState);
+	CheckNull(playerState);
+
+	//player->SetSelfPlayerState(playerState);
+	player->CurrentTeam = playerState->Team;
+	player->SetTeamColor(playerState->Team);
+
+	MoveToSpawnPoint(player);
 }

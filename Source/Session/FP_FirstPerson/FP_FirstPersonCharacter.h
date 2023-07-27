@@ -31,6 +31,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 		UAnimMontage* TP_FireAnimation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		UAnimMontage* TP_HitAnimation;
+
 	//Ä«¸Þ¶ó
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		UCameraComponent* Camera;
@@ -44,7 +47,9 @@ public:
 
 public:
 	AFP_FirstPersonCharacter();
+
 	virtual void PossessedBy(AController* NewController) override;
+	virtual float TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 		float BaseTurnRate;
@@ -84,6 +89,15 @@ protected:
 		void MulticastShootEffects();
 	void MulticastShootEffects_Implementation();
 
+	UFUNCTION(NetMulticast, Unreliable)
+		void PlayDamage();
+	void PlayDamage_Implementation();
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void PlayDead();
+	void PlayDead_Implementation();
+
+
 public:
 	UFUNCTION(NetMulticast, Reliable)
 		void SetTeamColor(ETeamType InTeamType);
@@ -100,7 +114,7 @@ protected:
 	void TurnAtRate(float Rate);
 	void LookUpAtRate(float Rate);
 
-	FHitResult WeaponTrace(const FVector& StartTrace, const FVector& EndTrace) const;
+	FHitResult WeaponTrace(const FVector& StartTrace, const FVector& EndTrace);
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
@@ -109,6 +123,10 @@ public:
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return FP_Mesh; }
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return Camera; }
 
+
+private:
+	UFUNCTION()
+		void Respawn();
 
 public:
 	UPROPERTY(Replicated)

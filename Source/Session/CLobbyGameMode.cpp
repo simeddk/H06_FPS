@@ -10,7 +10,7 @@ void ACLobbyGameMode::PostLogin(APlayerController* NewPlayer)
 
 	CLog::Print("Players : " + FString::FromInt(NumberOfPlayers));
 
-	if (NumberOfPlayers >= 3)
+	if (NumberOfPlayers >= 2)
 	{
 		CLog::Log("Ready to play");
 
